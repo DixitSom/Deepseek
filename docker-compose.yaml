@@ -2,10 +2,8 @@ services:
   deepseek:
     build: .
     container_name: deepseek
-    volumes:
-      - deepseek_data:/var/www/html
     ports:
-      - 80:80  
+      - 80:8000  
     depends_on:
       - redis
     restart: always
@@ -31,53 +29,28 @@ services:
             retries: 3
             success_code: 200-399
     environment:
-      - SECRET_KEY=random
-      - OPENAI_API_KEY=random
-      - CHAT_GPT_API_KEY=random
-      - REDIS_HOST=<hostname:redis>
+      - SECRET_KEY=SECRET_KEY
+      - OPENAI_API_KEY=SECRET_KEY
+      - CHAT_GPT_API_KEY=SECRET_KEY
+      - REDIS_HOST=localhost
     networks:
       - deepseek_network
       
-  # db:
-  #   image: mariadb:10.6-focal  # Uses a multi-architecture compatible MariaDB image
-  #   container_name: wordpress_db
-  #   volumes:
-  #     - db_data:/var/lib/mysql
-  #   restart: always
-  #   x-tinkr:
-  #     cpu: 512
-  #     memory: 512
-  #     environment:
-  #       - MYSQL_ROOT_PASSWORD=somewordpress
-  #       - MYSQL_DATABASE=wordpress
-  #       - MYSQL_USER=wordpress
-  #       - MYSQL_PASSWORD=wordpress
-  #     network:
-  #       public: false  # Indicates this service is accessible in private subnets
-  #     ports:
-  #       db-3306:
-  #         port: 3306
-  #         protocol: tcp
-  #         public: false
-  #   environment:
-  #     - MYSQL_ROOT_PASSWORD=somewordpress
-  #     - MYSQL_DATABASE=wordpress
-  #     - MYSQL_USER=wordpress
-  #     - MYSQL_PASSWORD=wordpress
-  #   expose:
-  #     - 3306
-  #   networks:
-  #     - wordpress_network
 
   redis:
     image: redis:latest
     container_name: redis
     restart: always
-    ports:
-      redis-6379:
-        port: 6379
-        protocol: tcp
+    x-tinkr:
+      cpu: 512
+      memory: 512
+      network:
         public: false
+      ports:
+        redis:
+          port: 6379
+          protocol: tcp
+          public: false
     networks:
       - deepseek_network
 
