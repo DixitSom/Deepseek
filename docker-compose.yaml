@@ -1,9 +1,33 @@
+version: '3.8'
+
 services:
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    volumes:
+      - redis_data:/var/lib/mysql
+    restart: always
+    x-tinkr:
+      cpu: 512
+      memory: 512
+      network:
+        public: false  # Redis is not publicly accessible
+      ports:
+        redis:
+          port: 6379
+          protocol: tcp
+          public: false
+    networks:
+      - deepseek_network
+
   deepseek:
     build: .
     container_name: deepseek
+    volumes:
+      - deepseek_data:/var/www/html
     ports:
-      - 80:8000  
+      - "80:8000"  # Map host port 80 to container port 8000
     depends_on:
       - redis
     restart: always
@@ -11,10 +35,7 @@ services:
       cpu: 512
       memory: 512
       environment:
-        - SECRET_KEY=random
-        - OPENAI_API_KEY=random
-        - CHAT_GPT_API_KEY=random
-        - REDIS_HOST=<hostname:redis>
+        - REDIS_HOST=<hostname:redis>  # Override Redis hostname for Tinkr
       network:
         public: true  # Indicates this service is accessible in public subnets
       ports:
@@ -27,37 +48,16 @@ services:
             interval: 30
             path: /
             retries: 3
-            success_code: 200-399
+            success_code: 200-499
     environment:
-      - SECRET_KEY=SECRET_KEY
-      - OPENAI_API_KEY=SECRET_KEY
-      - CHAT_GPT_API_KEY=SECRET_KEY
-      - REDIS_HOST=localhost
+      - SECRET_KEY=random
+      - OPENAI_API_KEY=random
+      - CHAT_GPT_API_KEY=random
+      - REDIS_HOST=redis  # Default Redis hostname for local development
     networks:
       - deepseek_network
-      
 
-  redis:
-    image: redis:latest
-    container_name: redis
-    restart: always
-    x-tinkr:
-      cpu: 512
-      memory: 512
-      network:
-        public: false
-      ports:
-        redis:
-          port: 6379
-          protocol: tcp
-          public: false
-    networks:
-      - deepseek_network
 
 networks:
   deepseek_network:
     driver: bridge
-
-volumes:
-  db_data:
-  wp_data:
